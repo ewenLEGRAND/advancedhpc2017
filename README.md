@@ -12,5 +12,5 @@ Students are expected to:
 Student Info
 =======================
 
-* Name: *YourNameHere*
-* ID: *YourIdHere*
+* Name: Ewen Legrand
+* ID: French ID :  13001999
