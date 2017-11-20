@@ -12,5 +12,5 @@ Students are expected to:
 Student Info
 =======================
 
-* Name: *YourNameHere*
-* ID: *YourIdHere*
+* Name: Ewen LEGRAND
+* ID: No USTH ID for now. French university ID : 13001999
