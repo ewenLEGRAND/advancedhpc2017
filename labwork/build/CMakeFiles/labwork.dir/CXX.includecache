@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+.././include/timer.h
+sys/time.h
+-
+
+/home/ewen/advancedhpc2017/labwork/src/timer.cpp
+include/timer.h
+-
+stdlib.h
+-
+

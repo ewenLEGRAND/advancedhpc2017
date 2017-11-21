@@ -14,3 +14,10 @@ Student Info
 
 * Name: Ewen Legrand
 * ID: French ID :  13001999
+
+Update : 21/11/2017
+======================
+
+* Git tutorial done
+* Driver computer and ubuntu session fixed
+* Report Lab0 done
