@@ -1,0 +1,55 @@
+** Title : Report Lab 0 **
+
+** Student : Ewen Legrand **
+
+** Mail : elegrand@enssat.fr **
+
+******************************************************
+
+Compilation
+***********
+
+	In order to compile this program and built it easier, I made a cmake 
+with the following command :
+
+	mkdir build
+	cd build
+	cmake ..
+	make -j 
+
+	After that I can run the program by typing ./labwork . If I change the
+program, I have to re-compile by typing "make -j" and re-run the program.
+
+	To compile this program, I have to add an argument (1,2,3 ...) and the path
+for the data which will be used in the program.
+
+Inputs
+******
+
+	./labwork 
+	
+	./labwork 1 ../data/eiffel.jpeg
+
+Outputs
+*******
+
+	USTH ICT Master 2017, Advanced Programming for HPC.
+	Usage: labwork <lwNum> <inputImage>
+	   lwNum        labwork number
+	   inputImage   the input file name, in JPEG format
+	
+	This output is the output when you forget the arguments lwNum and 
+inputImage.
+
+	USTH ICT Master 2017, Advanced Programming for HPC.
+	Warming up...
+	Starting labwork 1
+	labwork 1 CPU ellapsed 3017.5ms
+	labwork 1 ellapsed 91.6ms
+
+	This output is with lwNum (labwork number) equal to 1 and the eiffel
+jpeg image. We mesure the time of the computation labwork1_CPU() function and
+the time of the computation of labwork1_OpenMP() function. The result of the 
+computation time seems correct but the second mesure, for the OpenMP function,
+is not correct because this function is empty for now. I will have to complete
+this function in the next labwork : Labwork 1. 
