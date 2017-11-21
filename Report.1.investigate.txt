@@ -1,0 +1,50 @@
+** Title : Report Lab 1 **
+
+** Student : Ewen Legrand **
+
+** Mail : elegrand@enssat.fr **
+
+******************************************************
+
+Mission
+*******
+
+	Convert existing labwork 1 sequential CPU code to parallel using OpenMP. The 
+original code is Labwork::labwork1_CPU() and I have to modifie the code : Labwork:
+:labwork1_OpenMP().
+
+        In order to measure the difference between the two code, I will use an
+existing profiling class Timer which will show the speedup difference.
+
+How ?
+*****
+
+	I will use OpenMP command like #pragma omp directive [clause]. In this case,
+the ddirective will be "parallel" and the clause will be "for" because of the for loop.
+
+	So the OpenMP comand, #pragma omp parallel for, will be positioned just before 
+the 2 loops. I verified that the variables are effectively declared inside the parallelized
+region.        
+
+Speedup
+*******
+	
+	for "#pragma omp parallel for" command,
+
+		USTH ICT Master 2017, Advanced Programming for HPC.
+		Warming up...
+		Starting labwork 1
+		labwork 1 CPU ellapsed 2859.3ms
+		labwork 1 OpenMP ellapsed 785.3ms
+		labwork 1 ellapsed 785.3ms
+
+	I obtain approximatly the same time measured during the Labwork 0 for the labwork 1
+CPU compute : 2859.3 ms. And for the labwork 1 OpenMP compute time, I measure 785.3 ms which 
+is much better than CPU compute time. There a factor of 3.6 between the two measures so I can
+say that, thanks to OpenMP and the parallel compute, the image compute is 3.6 faster than the
+classic sequentiel CPU compute.
+
+
+TO DO 
+
+	#pragma omp for schedule(static[,chunk])

@@ -21,3 +21,8 @@ Update : 21/11/2017
 * Git tutorial done
 * Driver computer and ubuntu session fixed
 * Report Lab0 done
+* Code and Report Lab1 almost done
+	* To do :
+		- Static / dynamic configuration
+		- Different size bloc
+		- Different schedules
