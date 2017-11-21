@@ -44,6 +44,40 @@ is much better than CPU compute time. There a factor of 3.6 between the two meas
 say that, thanks to OpenMP and the parallel compute, the image compute is 3.6 faster than the
 classic sequentiel CPU compute.
 
+	I will change now the number of threads (bloc size variation). To do
+that, I will use the omp_set_num_threads() function available in OpenMP 
+library. I choose to change the number of threads between 2 and 12.
+
+2   => 1791.6 ms
+4   => 1126.3 ms
+6   => 816.2 ms
+8   => 953.8 ms
+10  => 904.4 ms
+12  => 787.5 ms
+14  => 917.7 ms
+16  => 838.3 ms
+18  => 792.5 ms
+
+
+^
+|    x
+|
+|
+|
+|        x
+|                x
+|                    x       x
+|            x                   x
+|                        x           x
+|
+|
+0==============================================>
+ 
+
+
+
+
+
 
 TO DO 
 
