@@ -1,0 +1,79 @@
+** Title : Report Lab 2 **
+
+** Student : Ewen Legrand **
+
+** Mail : elegrand@enssat.fr **
+
+******************************************************
+
+Mission
+*******
+
+	Implement the Labwork::labwork2_GPU() in order to extract the main information
+about the GPU that I'm using (ict3 GPU).
+
+How ?
+*****
+
+        I will use the cuda library and mainly the 2 command below :
+		- cudaGetDeviceCount() to get the number of NVIDIA GPU
+		- cudaGetDeviceProperties() to get the properties that I will choose to show.
+
+Properties
+**********
+
+
+USTH ICT Master 2017, Advanced Programming for HPC.
+Warming up...
+Starting labwork 2
+Device number : 2
+
+** First GPU
+
+	Major : 6
+	Total global memory : 8507752448
+	Shared memory per block : 49152
+	Registers per block : 65536
+	Clock rate : 1835000
+	Multiprocessor count : 20
+	Memory Bus Width : 256
+	  Peak Memory Bandwidth (GB/s): 320.320000
+
+	Warp size : 32
+	Max threads per blocks : 1024
+	Max threads dimension :
+		1 :    1024
+		2 :    1024
+		3 :      64
+	Max grid size :
+		1 : 2147483647
+		2 :   65535
+		3 :   65535
+
+** Second GPU
+
+	Major : 3
+	Total global memory : 6377766912
+	Shared memory per block : 49152
+	Registers per block : 65536
+	Clock rate : 980000
+	Multiprocessor count : 15
+	Memory Bus Width : 384
+	  Peak Memory Bandwidth (GB/s): 336.000000
+
+	Warp size : 32
+	Max threads per blocks : 1024
+	Max threads dimension :
+		1 :    1024
+		2 :    1024
+		3 :      64
+	Max grid size :
+		1 : 2147483647
+		2 :   65535
+		3 :   65535
+
+labwork 2 ellapsed 0.6ms
+
+	I can see that the bandwidth is approximatly the same (around 327 GB/s). The clock
+rate is clearly different and this is logical because in the ict3 machine there is two 
+differents GPU. The second GPU is more performing than the first.

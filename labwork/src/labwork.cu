@@ -142,7 +142,29 @@ int getSPcores(cudaDeviceProp devProp) {
 }
 
 void Labwork::labwork2_GPU() {
-    
+
+    int devCount;
+    cudaGetDeviceCount(&devCount);
+    printf("Device number : %d\n",devCount);
+    for(int i = 0; i < devCount; ++i)
+    {
+        cudaDeviceProp props;
+        cudaGetDeviceProperties(&props, i);
+        printf("Major : %d\n",props.major);
+        printf("Total global memory : %zu\n",props.totalGlobalMem);
+        printf("Shared memory peu block : %zu\n",props.sharedMemPerBlock);
+        //printf("%s\n",props.totalConstMem);
+        printf("Registers per block : %d\n",props.regsPerBlock);
+	printf("Clock rate : %d\n",props.clockRate);
+	printf("Multiprocessor count : %d\n",props.multiProcessorCount);
+	printf("Memory Bus Width : %d\n",props.memoryBusWidth);
+	printf("  Peak Memory Bandwidth (GB/s): %f\n\n", 2.0*props.memoryClockRate*(props.memoryBusWidth/8)/1.0e6);// source :devblogs.nvidia
+        printf("Warp size : %d\n",props.warpSize);
+        printf("Max threads per blocks : %d\n",props.maxThreadsPerBlock);
+        printf("Max threads dimension :\n 1 : %7d\n2 : %7d\n3 : %7d\n",props.maxThreadsDim[0],props.maxThreadsDim[1],props.maxThreadsDim[2]);
+        printf("Max grid size :\n 1 : %7d\n2 : %7d\n3 : %7d\n",props.maxGridSize[0],props.maxGridSize[1],props.maxGridSize[2]);
+        printf("\n\n\n");
+    }   
 }
 
 void Labwork::labwork3_GPU() {
