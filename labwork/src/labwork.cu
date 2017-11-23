@@ -233,8 +233,57 @@ void Labwork::labwork4_GPU() {
 	    cudaFree(devOutputImage);
 }
 
+__global__ void greyScalingLab5(uchar3 *devImage, uchar3 *devOutputImage){
+            int x = threadIdx.x + blockIdx.x * blockDim.x;
+            int y = threadIdx.y + blockIdx.y * blockDim.y;
+           int tid = y * width +x;
+            devOutputImage[tid].x = (char) ((int) (ceil((float) devImage[tid].x) + (int) ceil((float) devImage[tid].y) +
+                                         (int) ceil((float) devImage[tid].z)) / 3);
+            devOutputImage[tid].y = devOutputImage[tid].x;
+            devOutputImage[tid].z = devOutputImage[tid].x;
+}
+
+__global__ void filterLab5(uchar3 *devImage, uchar3 *devOutputImage,int * filter,int width){
+            int x = threadIdx.x + blockIdx.x * blockDim.x;
+            int y = threadIdx.y + blockIdx.y * blockDim.y;
+            int tid = y * width +x;
+
+	    float sum = 0;
+	    float value = 0;
+	    for (int i = -3; i <= 3; i++)	// row wise
+		for (int j = -3; j <= 3; j++)	// col wise
+		{
+		    if (blockIdx.x == 0 && (threadIdx.x + i) < 0)	// left apron
+			value = 0;
+		    else if ( blockIdx.x == (gridDim.x - 1) &&	(threadIdx.x + i) > blockDim.x-1 )	// right apron
+		        value = 0;
+		    else 
+		    { 
+			if (blockIdx.y == 0 && (threadIdx.y + j) < 0)	// top apron
+				value = 0;
+			else if ( blockIdx.y == (gridDim.y - 1) && (threadIdx.y + j) > blockDim.y-1 )	// bottom apron
+				value = 0;
+			else	// safe case
+				value = devImage[tid + i + j * width];
+	            } 
+		    sum += value * filter[3 + i] * filter[3 + j];
+	        }
+	        devOutputImage[tid] = sum;
+	    }
+}
+
+
+
 void Labwork::labwork5_GPU() {
-    
+    float GaussianFilter[7][7] ={
+	{1,4,7,10,7,4,1},
+	{4,12,26,33,26,12,4},
+	{7,26,55,71,55,26,7},
+	{10,33,71,91,71,33,10},
+        {7,26,55,71,55,26,7},
+        {4,12,26,33,26,12,4},
+	{1,4,7,10,7,4,1},
+    }; // Sum equal to 1115
 }
 
 void Labwork::labwork6_GPU() {
