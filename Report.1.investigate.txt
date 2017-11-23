@@ -72,13 +72,41 @@ library. I choose to change the number of threads between 2 and 12.
 |
 |
 0==============================================>
+     2   4   6   8   10  12  14  16  18 
+
+
+	Now, I will test the static configuration vs the dynamic configuration. For that,
+I will use the following command thanks to OpenMP :
  
+		#pragma omp for schedule(static)
+		#pragma omp for schedule(dynamic)
+
+	I tested with the 2 best block size, 6 and 12, in order to compare the static configuration
+and the dynamic configuration.
+
+Block size	 Static		Dynamic
+
+    6           792.6 ms        839.7 ms
+    12          768.1 ms        769.4 ms 
 
 
+	I can see that the static configuration is the best configuration for this program. Static
+is the default schedule as shown above. Upon entering the loop, each thread independently decides
+which chunk of the loop they will process.
 
+	In the dynamic schedule, there is no predictable order in which the loop items are assigned
+to different threads. Each thread asks the OpenMP runtime library for an iteration number, then
+andles it, then asks for next, and so on. This is most useful when used in conjunction with the
+ordered clause, or when the different iterations in the loop may take different time to execute.
 
+	I can also specify the chunk size with the following command :
 
+		#pragma omp for schedule(dynamic, chunkSize)
 
-TO DO 
+For example, I will try to run the program with a chunk size of 3. In this example, each thread
+asks for an iteration number, executes 3 iterations of the loop, then asks for another, ect...
+The last chunk may be smaller than 3, though.
 
-	#pragma omp for schedule(static[,chunk])
+	Result with a chunk size of 3 and a block size of 12 (best config) : 842.4 ms
+
+Of course, that's a constraint for the compute of the program.

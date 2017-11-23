@@ -5,6 +5,7 @@
 
 #define ACTIVE_THREADS 4
 
+
 int main(int argc, char **argv) {
     printf("USTH ICT Master 2017, Advanced Programming for HPC.\n");
     if (argc < 2) {
@@ -103,8 +104,8 @@ void Labwork::labwork1_CPU() {
 void Labwork::labwork1_OpenMP() {
     int pixelCount = inputImage->width * inputImage->height;
     outputImage = static_cast<char *>(malloc(pixelCount * 3));
-    omp_set_num_threads(18); // blocs size
-    #pragma omp parallel for
+    omp_set_num_threads(12); // blocs size
+    #pragma omp parallel for schedule(dynamic, 3)
     for (int j = 0; j < 100; j++) {             // let's do it 100 times, otherwise it's too fast!
         for (int i = 0; i < pixelCount; i++) {
             outputImage[i * 3] = (char) (((int) inputImage->buffer[i * 3] + (int) inputImage->buffer[i * 3 + 1] +
@@ -167,12 +168,63 @@ void Labwork::labwork2_GPU() {
     }   
 }
 
+
+__global__ void imageComputeLab3(uchar3 *devImage, uchar3 *devOutputImage){
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+            devOutputImage[tid].x = (char) (((int) devImage[tid].x + (int) devImage[tid].y +
+                                          (int) devImage[tid].z) / 3);
+            devOutputImage[tid].y = devOutputImage[tid].x;
+            devOutputImage[tid].z = devOutputImage[tid].x;
+}
+
 void Labwork::labwork3_GPU() {
-   
+            uchar3 *devImage;
+            uchar3 *devOutputImage;
+            uchar3 *hostOutputImage;
+            int pixelCount =inputImage->width *inputImage->height;
+            int blockSize = 16;
+            int numBlock = pixelCount / blockSize;
+
+            cudaMalloc(&devImage, pixelCount * 3);
+            cudaMalloc(&devOutputImage, pixelCount * 3);
+            hostOutputImage = (uchar3 *) malloc(pixelCount * 3);
+
+            cudaMemcpy(devImage, inputImage->buffer,pixelCount * sizeof(uchar3),cudaMemcpyHostToDevice); // Memory transfert
+
+            imageComputeLab3<<<numBlock, blockSize>>>(devImage,devOutputImage); // Kernel
+
+            cudaMemcpy(hostOutputImage, devOutputImage,pixelCount * sizeof(uchar3),cudaMemcpyDeviceToHost);
+	    outputImage = (char *)hostOutputImage;
+            cudaFree(devImage);   
+}
+
+__global__ void imageComputeLab4(uchar3 *devImage, uchar3 *devOutputImage){
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+            devOutputImage[tid].x = (char) (((int) devImage[tid].x + (int) devImage[tid].y +
+                                          (int) devImage[tid].z) / 3);
+            devOutputImage[tid].y = devOutputImage[tid].x;
+            devOutputImage[tid].z = devOutputImage[tid].x;
 }
 
 void Labwork::labwork4_GPU() {
-   
+            uchar3 *devImage;
+            uchar3 *devOutputImage;
+            uchar3 *hostOutputImage;
+            dim3 blockSize = dim3(64,16);
+            int pixelCount =inputImage->width *inputImage->height;	   
+	    dim3 gridSize = dim3(inputImage->width/blockSize.x,inputImage->height/blockSize.y);
+
+            cudaMalloc(&devImage, pixelCount * 3);
+            cudaMalloc(&devOutputImage, pixelCount * 3);
+            hostOutputImage = (uchar3 *) malloc(pixelCount * 3);
+
+            cudaMemcpy(devImage, inputImage->buffer,pixelCount * sizeof(uchar3),cudaMemcpyHostToDevice); // Memory transfert
+
+            imageComputeLab4<<<gridSize, blockSize>>>(devImage,devOutputImage); // Kernel
+
+            cudaMemcpy(hostOutputImage, devOutputImage,pixelCount * sizeof(uchar3),cudaMemcpyDeviceToHost);
+            outputImage = (char *)hostOutputImage;
+            cudaFree(devImage);   
 }
 
 void Labwork::labwork5_GPU() {
