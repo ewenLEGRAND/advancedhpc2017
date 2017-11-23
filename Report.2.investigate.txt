@@ -76,4 +76,5 @@ labwork 2 ellapsed 0.6ms
 
 	I can see that the bandwidth is approximatly the same (around 327 GB/s). The clock
 rate is clearly different and this is logical because in the ict3 machine there is two 
-differents GPU. The second GPU is more performing than the first.
+differents GPU. The number of thread per block is the same (1024) but the max grid size is so
+hudge that we can use a lot of threads.
