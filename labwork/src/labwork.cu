@@ -183,7 +183,7 @@ void Labwork::labwork3_GPU() {
             uchar3 *devOutputImage;
             uchar3 *hostOutputImage;
             int pixelCount =inputImage->width *inputImage->height;
-            int blockSize = 512;
+            int blockSize = 1024;
             int numBlock = pixelCount / blockSize;
 
             cudaMalloc(&devImage, pixelCount * 3);
@@ -197,10 +197,13 @@ void Labwork::labwork3_GPU() {
             cudaMemcpy(hostOutputImage, devOutputImage,pixelCount * sizeof(uchar3),cudaMemcpyDeviceToHost);
 	    outputImage = (char *)hostOutputImage;
             cudaFree(devImage);   
+	    cudaFree(devOutputImage);
 }
 
-__global__ void imageComputeLab4(uchar3 *devImage, uchar3 *devOutputImage){
-    int tid = threadIdx.x + blockIdx.x * blockDim.x + threadIdx.y + blockIdx.y * blockDim.y;
+__global__ void imageComputeLab4(uchar3 *devImage, uchar3 *devOutputImage,int width){
+            int x = threadIdx.x + blockIdx.x * blockDim.x;
+	    int y = threadIdx.y + blockIdx.y * blockDim.y;
+	    int tid = y * width +x;
             devOutputImage[tid].x = (char) ((int) (ceil((float) devImage[tid].x) + (int) ceil((float) devImage[tid].y) +
                                          (int) ceil((float) devImage[tid].z)) / 3);
             devOutputImage[tid].y = devOutputImage[tid].x;
@@ -211,8 +214,9 @@ void Labwork::labwork4_GPU() {
             uchar3 *devImage;
             uchar3 *devOutputImage;
             uchar3 *hostOutputImage;
-            dim3 blockSize = dim3(128,128);
+            dim3 blockSize = dim3(32,32);
             int pixelCount =inputImage->width *inputImage->height;	   
+	    int width = inputImage->width;
 	    dim3 gridSize = dim3(inputImage->width/blockSize.x,inputImage->height/blockSize.y);
 
             cudaMalloc(&devImage, pixelCount * 3);
@@ -221,11 +225,12 @@ void Labwork::labwork4_GPU() {
 
             cudaMemcpy(devImage, inputImage->buffer,pixelCount * sizeof(uchar3),cudaMemcpyHostToDevice); // Memory transfert
 
-            imageComputeLab4<<<gridSize, blockSize>>>(devImage,devOutputImage); // Kernel
+            imageComputeLab4<<<gridSize, blockSize>>>(devImage,devOutputImage,width); // Kernel
 
             cudaMemcpy(hostOutputImage, devOutputImage,pixelCount * sizeof(uchar3),cudaMemcpyDeviceToHost);
             outputImage = (char *)hostOutputImage;
             cudaFree(devImage);   
+	    cudaFree(devOutputImage);
 }
 
 void Labwork::labwork5_GPU() {
