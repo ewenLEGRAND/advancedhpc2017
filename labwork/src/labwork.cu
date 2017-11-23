@@ -52,6 +52,8 @@ int main(int argc, char **argv) {
             labwork.saveOutputImage("labwork4-gpu-out.jpg");
             break;
         case 5:
+            labwork.labwork5_CPU();
+            labwork.saveOutputImage("labwork5-cpu-out.jpg");
             labwork.labwork5_GPU();
             labwork.saveOutputImage("labwork5-gpu-out.jpg");
             break;
@@ -140,6 +142,43 @@ void Labwork::labwork3_GPU() {
 
 void Labwork::labwork4_GPU() {
    
+}
+
+// CPU implementation of Gaussian Blur
+void Labwork::labwork5_CPU() {
+    int kernel[] = { 0, 0, 1, 2, 1, 0, 0,  
+                     0, 3, 13, 22, 13, 3, 0,  
+                     1, 13, 59, 97, 59, 13, 1,  
+                     2, 22, 97, 159, 97, 22, 2,  
+                     1, 13, 59, 97, 59, 13, 1,  
+                     0, 3, 13, 22, 13, 3, 0,
+                     0, 0, 1, 2, 1, 0, 0 };
+    int pixelCount = inputImage->width * inputImage->height;
+    outputImage = (char*) malloc(pixelCount * sizeof(char) * 3);
+    for (int row = 0; row < inputImage->height; row++) {
+        for (int col = 0; col < inputImage->width; col++) {
+            int sum = 0;
+            int c = 0;
+            for (int y = -3; y <= 3; y++) {
+                for (int x = -3; x <= 3; x++) {
+                    int i = col + x;
+                    int j = row + y;
+                    if (i < 0) continue;
+                    if (i >= inputImage->width) continue;
+                    if (j < 0) continue;
+                    if (j >= inputImage->height) continue;
+                    int tid = j * inputImage->width + i;
+                    unsigned char gray = (inputImage->buffer[tid * 3] + inputImage->buffer[tid * 3 + 1] + inputImage->buffer[t$
+                    int coefficient = kernel[(y+3) * 7 + x + 3];
+                    sum = sum + gray * coefficient;
+                    c += coefficient;
+                }
+            }
+            sum /= c;
+            int posOut = row * inputImage->width + col;
+            outputImage[posOut * 3] = outputImage[posOut * 3 + 1] = outputImage[posOut * 3 + 2] = sum;
+        }
+    }
 }
 
 void Labwork::labwork5_GPU() {
