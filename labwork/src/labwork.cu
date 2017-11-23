@@ -182,7 +182,7 @@ void Labwork::labwork3_GPU() {
             uchar3 *devOutputImage;
             uchar3 *hostOutputImage;
             int pixelCount =inputImage->width *inputImage->height;
-            int blockSize = 16;
+            int blockSize = 512;
             int numBlock = pixelCount / blockSize;
 
             cudaMalloc(&devImage, pixelCount * 3);

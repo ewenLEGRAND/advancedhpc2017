@@ -1,0 +1,72 @@
+** Title : Report Lab 3 **
+
+** Student : Ewen Legrand **
+
+** Mail : elegrand@enssat.fr **
+
+******************************************************
+
+Mission
+*******
+
+        Implement the Labwork::labwork3_GPU() in order to implement the previous labwork 1
+(greyscale) using cuda.
+
+How ?
+*****
+
+        First I need to allocate the memory for the device input image, device output image,
+using the cudamalloc function and finally allocate the host output image memory with a simple 
+malloc.
+
+	Second, I need to copy the data from host to device. I use the cudaMemcpy host to device
+to do that. 
+
+	Third, I need to define the kernel. In the kernel, I put the previous labwork 1 code but
+without the loops because, thanks to the treads (1 thread per pixel), there is no need loops. In
+the kernel, I have to define the number of blocks and the blocks size. The block size is define by
+the user and the number of blocks is the pixelCount divided by the block size. In the kernel, 1
+pixel is composed by 3 elements : R, G, B. So I have to divide the sum of the 3 elements value by 3
+to compute the value of 1 element.
+
+	Fourth, after to fill the device output image in the kernel, I have to copy the image from
+device to host. At the end, the outputImage (equal to hostOutputImage) is saved.
+
+	
+Speedup
+*******
+
+	I change the block size from 4 to 256 to show the influence of the block size.
+
+    Block size		Time (ms)
+	4		 121.4
+	8		 122.6
+	16		 122
+	32		 122.1
+	64		 123.9
+	128		 121.3
+	256		 102.1
+	512		 98.8
+
+
+^
+|    
+|
+|    x   x   x   x   x   x
+|
+|                             x   x
+|                
+|                           
+|                               
+|                                   
+|
+|
+0========================================>
+     4   8   16  32  64  128 256 512  
+
+
+	The maximum block size is 1024 but I stoped my experiment at 512 because it will be approximatly	
+the same result than 512. Between a block size of 4 and 128, there isn't big difference of speedup. With 
+a bigger block size (256, 512...) the speedup improve.
+
+	Overall, thanks to the cuda sdk, the speedup improved a lot.
