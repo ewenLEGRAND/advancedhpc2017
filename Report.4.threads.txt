@@ -1,0 +1,82 @@
+
+** Title : Report Lab 4 **
+
+** Student : Ewen Legrand **
+
+** Mail : elegrand@enssat.fr **
+
+******************************************************
+
+Mission
+*******
+
+        Thanks to the labwork 3 code, I have to improve labwork 4 code to use 2D blocks. 
+
+How ?
+*****
+
+        First I put the block size init (to the user), then the pixelCount init and finally
+I compute the grid size thanks to the 2 previous elements.
+
+		- blockSize(bx,by);
+		- PixelCount(W * H);
+		- GridSize(W/bx, H/by);
+
+Thanks to this, I will have the best optimization for the grid size.
+
+	After that, I have to change the TID (thread identity). Because I want to use a 2D grid
+of blocks and a 2D set of threads, I have to add some specification in my tid. In the thread class
+we saw :
+
+		1D: x = threadIdx.x + blockIdx.x * blockDim.x
+		2D: y = threadIdx.y + blockIdx.y * blockDim.y
+
+	Thus, I have to add the 2D specification to my actual tid. Afer the tid, I have to take care
+about the case of block misse. In fex case, with this actual code, blocks can be missed. To fix that, 
+I will change, in the kernel, the int elements to float elements and I will use the Ceil function of
+math.h library to round at the up int the elements value. Thanks to that, my program will not missed block.
+
+
+Speedup
+*******
+
+	I tried few configuration of blocks sizes.
+
+    Block size          Time (ms)
+       (4,4)              102.2
+      (16,16)             101.8
+      (32,32)             103.5
+      (64,64)             87.4
+     (128,128)            85.9
+     (256,256)            88.8
+     (16, 256)            105.7
+      (16,64)             108.2
+
+
+
+
+Time(ms)
+^
+|
+|
+|    x      x      x                               x       x
+|
+|                            
+|                         x               x   
+|                                 x
+|
+|
+|
+|
+0===============================================================> Block size
+     4,4  16,16  32,32  64,64  128,128  256,256  16,256  16,64
+
+
+	As I we can see on the graph above, the best configuration is the (128,128)
+block size followed by the (64,64) and (256,256) configuration block size.
+	
+	If I compare the 1D grid with this 2D grid, the speedup is improved in the 
+2D grid.
+
+Exercises
+*********
