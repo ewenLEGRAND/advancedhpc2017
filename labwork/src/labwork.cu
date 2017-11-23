@@ -274,9 +274,7 @@ __global__ void filterLab5(uchar3 *devImage, uchar3 *devOutputImage,int * filter
 	    }
 }
 
-<<<<<<< HEAD
 
-=======
 // CPU implementation of Gaussian Blur
 void Labwork::labwork5_CPU() {
     int kernel[] = { 0, 0, 1, 2, 1, 0, 0,  
@@ -313,7 +311,8 @@ void Labwork::labwork5_CPU() {
         }
     }
 }
->>>>>>> beae376bfe3d011f74d141baa15bb023ca9b2e60
+
+
 
 void Labwork::labwork5_GPU() {
     float GaussianFilter[7][7] ={
