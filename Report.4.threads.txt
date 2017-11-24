@@ -31,10 +31,14 @@ we saw :
 		1D: x = threadIdx.x + blockIdx.x * blockDim.x
 		2D: y = threadIdx.y + blockIdx.y * blockDim.y
 
-	Thus, I have to add the 2D specification to my actual tid. Afer the tid, I have to take care
-about the case of block misse. In fex case, with this actual code, blocks can be missed. To fix that, 
-I will change, in the kernel, the int elements to float elements and I will use the Ceil function of
-math.h library to round at the up int the elements value. Thanks to that, my program will not missed block.
+	Thus, I have to add the 2D specification to my actual tid.
+
+		tid = y + picture->widht * x;
+
+	Afer the tid, I have to take care about the case of block misse. In fex case, with this actual
+code, blocks can be missed. To fix that, I will change, in the kernel, the int elements to float
+elements and I will use the Ceil function of math.h library to round at the up int the elements value.
+Thanks to that, my program will not missed block.
 
 
 Speedup
@@ -80,3 +84,62 @@ block size followed by the (64,64) and (256,256) configuration block size.
 
 Exercises
 *********
+
+	Exercise 1
+	==========
+
+	With a GPU having the following specs (maximum numbers):
+			
+			• 512 threads/block
+			• 1024 threads/SM
+			• 8 blocks/SM
+			• 32 threads/warp
+
+	The best configuration is 16 x 16 size block. Why ? First, the 32 x 32 size
+block configuration is not possible because it is too big (32x32 = 1024 threads >> 512
+which is the max threads per block). So the 8x8 and 16x16 configuration are possible
+but we can say that the 16x16 is the best because it's easier for the scheduler to
+scheduling.
+
+	Exercise 2
+	==========
+
+	With a device Streaming Multiprocessor (SM) that can take max
+
+			• 1,536 threads
+			• 4 blocks
+
+	Which of the following block configs would result in the most
+number of threads in the SM ?
+
+			• 128 threads/blk
+			• 256 threads/blk
+			• 512 threads/blk
+			• 1,024 threads/blk
+
+
+	=> It's the configuration 512 threads per block because if I fill 3 blocks on the 
+fourth, I will be able to use all the available threads (512 * 3 = 1536). With the 256 threads
+per block, I will use all the blocks but just 1024 threads (worst for 128 configuration so) and 
+for the 1024 configuration, I will use juste 1 block with just 1024 threads so it's not a good
+idea.
+
+	Exercise 3
+	==========
+
+	Consider a vector addition problem
+			• Vector length is 2,000
+			• Each thread produces one output
+			• Block size 512 threads.
+
+	How many threads will be in the grid ?
+
+	In order to compute all the vector, I have to use 4 blocks with 512 threads each.
+So in total, 2048 threads will be in the grid but 48 threads will be not use. To fix that 
+I can put a condition as
+			
+			 if(tid > pixelCount)
+				return ;
+
+End
+***
