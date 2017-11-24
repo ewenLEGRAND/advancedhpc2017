@@ -228,60 +228,22 @@ void Labwork::labwork4_GPU() {
             cudaMemcpy(devImage, inputImage->buffer,pixelCount * sizeof(uchar3),cudaMemcpyHostToDevice); // Memory transfert
 
             imageComputeLab4<<<gridSize, blockSize>>>(devImage,devOutputImage,width); // Kernel
-
+	
             cudaMemcpy(hostOutputImage, devOutputImage,pixelCount * sizeof(uchar3),cudaMemcpyDeviceToHost);
             outputImage = (char *)hostOutputImage;
             cudaFree(devImage);   
 	    cudaFree(devOutputImage);
 }
 
-__global__ void greyScalingLab5(uchar3 *devImage, uchar3 *devOutputImage){
-            int x = threadIdx.x + blockIdx.x * blockDim.x;
-            int y = threadIdx.y + blockIdx.y * blockDim.y;
-           int tid = y * width +x;
-            devOutputImage[tid].x = (char) ((int) (ceil((float) devImage[tid].x) + (int) ceil((float) devImage[tid].y) +
-                                         (int) ceil((float) devImage[tid].z)) / 3);
-            devOutputImage[tid].y = devOutputImage[tid].x;
-            devOutputImage[tid].z = devOutputImage[tid].x;
-}
-
-__global__ void filterLab5(uchar3 *devImage, uchar3 *devOutputImage,int * filter,int width){
-            int x = threadIdx.x + blockIdx.x * blockDim.x;
-            int y = threadIdx.y + blockIdx.y * blockDim.y;
-            int tid = y * width +x;
-
-	    float sum = 0;
-	    float value = 0;
-	    for (int i = -3; i <= 3; i++)	// row wise
-		for (int j = -3; j <= 3; j++)	// col wise
-		{
-		    if (blockIdx.x == 0 && (threadIdx.x + i) < 0)	// left apron
-			value = 0;
-		    else if ( blockIdx.x == (gridDim.x - 1) &&	(threadIdx.x + i) > blockDim.x-1 )	// right apron
-		        value = 0;
-		    else 
-		    { 
-			if (blockIdx.y == 0 && (threadIdx.y + j) < 0)	// top apron
-				value = 0;
-			else if ( blockIdx.y == (gridDim.y - 1) && (threadIdx.y + j) > blockDim.y-1 )	// bottom apron
-				value = 0;
-			else	// safe case
-				value = devImage[tid + i + j * width];
-	            } 
-		    sum += value * filter[3 + i] * filter[3 + j];
-	        }
-	        devOutputImage[tid] = sum;
-	    }
-}
 
 
 // CPU implementation of Gaussian Blur
 void Labwork::labwork5_CPU() {
-    int kernel[] = { 0, 0, 1, 2, 1, 0, 0,  
-                     0, 3, 13, 22, 13, 3, 0,  
-                     1, 13, 59, 97, 59, 13, 1,  
-                     2, 22, 97, 159, 97, 22, 2,  
-                     1, 13, 59, 97, 59, 13, 1,  
+    int kernel[] = { 0, 0, 1, 2, 1, 0, 0,
+                     0, 3, 13, 22, 13, 3, 0,
+                     1, 13, 59, 97, 59, 13, 1,
+                     2, 22, 97, 159, 97, 22, 2,
+                     1, 13, 59, 97, 59, 13, 1,
                      0, 3, 13, 22, 13, 3, 0,
                      0, 0, 1, 2, 1, 0, 0 };
     int pixelCount = inputImage->width * inputImage->height;
@@ -299,7 +261,7 @@ void Labwork::labwork5_CPU() {
                     if (j < 0) continue;
                     if (j >= inputImage->height) continue;
                     int tid = j * inputImage->width + i;
-                    unsigned char gray = (inputImage->buffer[tid * 3] + inputImage->buffer[tid * 3 + 1] + inputImage->buffer[t$
+                    unsigned char gray = inputImage->buffer[tid * 3] + inputImage->buffer[tid * 3 + 1] + inputImage->buffer[tid * 3 + 2];
                     int coefficient = kernel[(y+3) * 7 + x + 3];
                     sum = sum + gray * coefficient;
                     c += coefficient;
@@ -313,17 +275,116 @@ void Labwork::labwork5_CPU() {
 }
 
 
+__global__ void filterLab5(char *childDevOutputImage, char *childDevInputImage, int * filter,int width){
+            int x = threadIdx.x + blockIdx.x * blockDim.x;
+            int y = threadIdx.y + blockIdx.y * blockDim.y;
+            int tid = y * width +x;
+	
+	    float outputPixel = 0;
+	    float value = 0;
+	    for (int i = -3; i <= 3; i++)
+	    {
+		for (int j = -3; j <= 3; j++)
+		{
+		    if (blockIdx.x == 0 && (threadIdx.x + i) < 0)	// left side
+			value = 0;
+		    else if ( blockIdx.x == (gridDim.x - 1) &&	(threadIdx.x + i) > blockDim.x-1 )	// right side
+		        value = 0;
+		    else 
+		    { 
+			if (blockIdx.y == 0 && (threadIdx.y + j) < 0)	// top side
+				value = 0;
+			else if ( blockIdx.y == (gridDim.y - 1) && (threadIdx.y + j) > blockDim.y-1 )	// bottom side
+				value = 0;
+			else
+				value = childDevInputImage[tid + i + j * width]; // no side problem
+	            } 
+		    outputPixel += value * filter[3 + i] * filter[3 + j];
+	        }
+	        childDevOutputImage[tid] = outputPixel;
+	    }
+}
+
+__global__ void greyScalingAndFilterLab5(uchar3 *devImage, char *devOutputImageFilter, int width, int pixelCount,dim3 gridSize, dim3 blockSize, int *filter){
+            int x = threadIdx.x + blockIdx.x * blockDim.x;
+            int y = threadIdx.y + blockIdx.y * blockDim.y;
+            int tid = y * width + x;
+            char * castOutputGreyImage = (char *) malloc(pixelCount);
+            uchar3 * devOutputImage = (uchar3 *) malloc(pixelCount * 3);
+            char * childDevInputImage;
+            char * childDevOutputImage;
+
+            devOutputImage[tid].x = (char) ((int) (ceil((float) devImage[tid].x) + (int) ceil((float) devImage[tid].y) +
+                                         (int) ceil((float) devImage[tid].z)) / 3);
+            devOutputImage[tid].y = devOutputImage[tid].x;
+            devOutputImage[tid].z = devOutputImage[tid].x;
+
+            castOutputGreyImage = (char *)devOutputImage;
+
+            cudaMalloc(&devOutputImageFilter, pixelCount); // Final output
+            cudaMalloc(&childDevInputImage, pixelCount); // filterLab5 kernel input
+            cudaMalloc(&childDevOutputImage, pixelCount); // filterLab5 kernel output
+
+            cudaMemcpy(childDevInputImage,castOutputGreyImage ,pixelCount, cudaMemcpyDeviceToDevice); // Memory transfert
+
+            __syncthreads();
+
+            filterLab5<<<gridSize, blockSize>>>(childDevOutputImage,childDevInputImage, filter,width); // Kernel
+            cudaDeviceSynchronize();
+
+            __syncthreads(); // Not sure if I have to put it before or after the cudaMemcpy
+
+            cudaMemcpy(devOutputImageFilter, childDevOutputImage, pixelCount, cudaMemcpyDeviceToDevice);
+
+            cudaFree(devOutputImageFilter);
+            cudaFree(childDevInputImage);
+            cudaFree(childDevOutputImage);
+
+}
+
 
 void Labwork::labwork5_GPU() {
-    float GaussianFilter[7][7] ={
-	{1,4,7,10,7,4,1},
-	{4,12,26,33,26,12,4},
-	{7,26,55,71,55,26,7},
-	{10,33,71,91,71,33,10},
-        {7,26,55,71,55,26,7},
-        {4,12,26,33,26,12,4},
-	{1,4,7,10,7,4,1},
-    }; // Sum equal to 1115
+/*
+	    float GaussianFilter[7][7] ={
+		{1,4,7,10,7,4,1},
+		{4,12,26,33,26,12,4},
+		{7,26,55,71,55,26,7},
+		{10,33,71,91,71,33,10},
+	        {7,26,55,71,55,26,7},
+		{4,12,26,33,26,12,4},
+		{1,4,7,10,7,4,1},
+	    }; // Sum equal to 1115
+*/
+	    int filter[] = { 0, 0, 1, 2, 1, 0, 0,
+                     0, 3, 13, 22, 13, 3, 0,
+                     1, 13, 59, 97, 59, 13, 1,
+                     2, 22, 97, 159, 97, 22, 2,
+                     1, 13, 59, 97, 59, 13, 1,
+                     0, 3, 13, 22, 13, 3, 0,
+                     0, 0, 1, 2, 1, 0, 0 };
+      
+	    uchar3 *devImage;
+            char *hostOutputImage;
+	    char *devOutputImageFilter;
+            dim3 blockSize = dim3(32,32);
+            int pixelCount =inputImage->width *inputImage->height;
+            int width = inputImage->width;
+            dim3 gridSize = dim3(inputImage->width/blockSize.x,inputImage->height/blockSize.y);
+
+            cudaMalloc(&devImage, pixelCount * 3);
+            cudaMalloc(&devOutputImageFilter, pixelCount);
+            hostOutputImage = (char *) malloc(pixelCount);
+
+            cudaMemcpy(devImage, inputImage->buffer,pixelCount * sizeof(uchar3),cudaMemcpyHostToDevice); // Memory transfert
+
+            greyScalingAndFilterLab5<<<gridSize, blockSize>>>(devImage,devOutputImageFilter,width,pixelCount,gridSize,blockSize,filter); // Kernel
+
+            cudaMemcpy(hostOutputImage, devOutputImageFilter,pixelCount ,cudaMemcpyDeviceToHost);
+	
+	    
+	    outputImage = hostOutputImage;
+            cudaFree(devImage);
+
 }
 
 void Labwork::labwork6_GPU() {
