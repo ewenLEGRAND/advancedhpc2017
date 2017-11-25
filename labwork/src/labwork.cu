@@ -446,7 +446,7 @@ void Labwork::labwork6_GPU() {
 
             binarisationLab6<<<gridSize, blockSize>>>(binarisationDevOutputImage,devOutputImage,width); // Kernel
 	    
-	   // brightnessLab6<<<gridSize, blockSize>>>(binarisationDevOutputImage,devOutputImage,width); // Kernel
+	    //brightnessLab6<<<gridSize, blockSize>>>(binarisationDevOutputImage,devOutputImage,width); // Kernel
             
 	    cudaMemcpy(hostOutputImageFilter, binarisationDevOutputImage, pixelCount*3, cudaMemcpyDeviceToHost);
 
