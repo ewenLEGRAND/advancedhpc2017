@@ -380,6 +380,37 @@ void Labwork::labwork5_GPU() {
 
 
 
+__global__ void binarisationLab6(uchar3 *binarisationDevOutputImage, uchar3 *devOutputImage,int width){
+            int x = threadIdx.x + blockIdx.x * blockDim.x;
+            int y = threadIdx.y + blockIdx.y * blockDim.y;
+            int tid = y * width + x;
+	    int therehold = 256/2;
+	    unsigned char grey = devOutputImage[tid].x;
+
+	    if(grey<therehold){
+		binarisationDevOutputImage[tid].x = 0;
+	    }
+	    else{
+		binarisationDevOutputImage[tid].x = 255;
+	    }
+
+	    binarisationDevOutputImage[tid].y = binarisationDevOutputImage[tid].z = binarisationDevOutputImage[tid].x;
+	    
+}
+
+__global__ void brightnessLab6(uchar3 *binarisationDevOutputImage, uchar3 *devOutputImage,int width){
+            int x = threadIdx.x + blockIdx.x * blockDim.x;
+            int y = threadIdx.y + blockIdx.y * blockDim.y;
+            int tid = y * width + x;
+            unsigned char grey = devOutputImage[tid].x;
+
+            binarisationDevOutputImage[tid].x = grey + (int) 0.2*grey;
+            binarisationDevOutputImage[tid].y = binarisationDevOutputImage[tid].z = binarisationDevOutputImage[tid].x;
+
+}
+
+
+
 __global__ void greyScalingLab6(uchar3 *devImage, uchar3 *devOutputImage, int width){
             int x = threadIdx.x + blockIdx.x * blockDim.x;
             int y = threadIdx.y + blockIdx.y * blockDim.y;
@@ -389,29 +420,7 @@ __global__ void greyScalingLab6(uchar3 *devImage, uchar3 *devOutputImage, int wi
                                          (int) ceil((float) devImage[tid].z)) / 3);
             devOutputImage[tid].y = devOutputImage[tid].x;
             devOutputImage[tid].z = devOutputImage[tid].x;
-
 }
-
-__global__ void binarisationLab6(uchar3 *binarisationDevOutputImage, uchar3 *devOutputImage,int width){
-            int x = threadIdx.x + blockIdx.x * blockDim.x;
-            int y = threadIdx.y + blockIdx.y * blockDim.y;
-            int tid = y * width +x;
-	    int therehold = 256/2;
-	    float pixelValue;
-	    unsigned char grey = devOutputImage[tid].x;
-                   
-	    if(grey<therehold){
-		pixelValue = 0;
-	    }
-	    else{
-		pixelValue = 255;
-	    }
-
-	    binarisationDevOutputImage[tid].x = pixelValue;
-	    binarisationDevOutputImage[tid].y = binarisationDevOutputImage[tid].z = binarisationDevOutputImage[tid].x;
-	    
-}
-
 
 
 void Labwork::labwork6_GPU() {
@@ -420,7 +429,7 @@ void Labwork::labwork6_GPU() {
             uchar3 *hostOutputImageFilter;
             uchar3 *binarisationDevOutputImage;
 
-            dim3 blockSize = dim3(256,256);
+            dim3 blockSize = dim3(32,32);
             int pixelCount =inputImage->width *inputImage->height;
             int width = inputImage->width;
             dim3 gridSize = dim3(inputImage->width/blockSize.x,inputImage->height/blockSize.y);
@@ -430,13 +439,16 @@ void Labwork::labwork6_GPU() {
             cudaMalloc(&devOutputImage, pixelCount*3);
             cudaMalloc(&binarisationDevOutputImage, pixelCount*3);
 
+
             cudaMemcpy(devImage, inputImage->buffer,pixelCount * sizeof(uchar3),cudaMemcpyHostToDevice); // Memory transfert
 
             greyScalingLab6<<<gridSize, blockSize>>>(devImage,devOutputImage,width); // Kernel greyscaling
 
             binarisationLab6<<<gridSize, blockSize>>>(binarisationDevOutputImage,devOutputImage,width); // Kernel
-
-            cudaMemcpy(hostOutputImageFilter, binarisationDevOutputImage, pixelCount*3, cudaMemcpyDeviceToHost);
+	    
+	   // brightnessLab6<<<gridSize, blockSize>>>(binarisationDevOutputImage,devOutputImage,width); // Kernel
+            
+	    cudaMemcpy(hostOutputImageFilter, binarisationDevOutputImage, pixelCount*3, cudaMemcpyDeviceToHost);
 
             outputImage = (char *)hostOutputImageFilter;
             cudaFree(devImage);
@@ -444,6 +456,11 @@ void Labwork::labwork6_GPU() {
             cudaFree(binarisationDevOutputImage);
 
 }
+
+
+
+
+
 
 void Labwork::labwork7_GPU() {
 
