@@ -1,0 +1,31 @@
+** Title : Report Lab 5 **
+
+** Student : Ewen Legrand **
+
+** Mail : elegrand@enssat.fr **
+
+******************************************************
+
+Mission
+*******
+
+        Thanks to the labwork 4 code, I have to realize a 7x7 Gaussian blur convolution.
+
+How ?
+*****
+
+	 First, I have to define the matrix of the 7x7 gaussian filter. After that, I will
+use the CPU convolution code and modify it with the parallel use of kernels.
+
+	In my program, I will use two kernel. The first one is the kernel greyscaling that 
+I already used in the previous labs. After that first image computing, I have to filter the 
+device output image of the greyscaling kernel. So I use the device output of the greyscaling
+kernel as the input for my filter kernel. 
+
+	The filter kernel has two for loop in order to compute each pixel on the filter matrix
+surface (7x7). There is 4 conditions (top, bottom, left and right side of the image) where I have 
+to be carefull because of the filter matrix part which is out of the image matrix. In fact for the
+pixels which are one the side of the image, there is a part of the matrix filter which is not into
+the image dimension. In this case I choose to do nothing and to ignore these pixels (instead of 
+mirror choice).
+
